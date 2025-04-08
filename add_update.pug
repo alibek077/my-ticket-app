@@ -1,0 +1,68 @@
+// views/home/add_update.pug
+include ../head.pug
+
+.container.mt-5
+  h1 #{mode} Ticket
+  .mb-3
+    label(for="eventName" class="form-label") Event Name
+    input(type="text", class="form-control", id="eventName", name="eventName", required, value=(eventData && eventData.ticket.eventName) || '')
+  .mb-3
+    label(for="eventDateTime" class="form-label") Event Date/Time
+    .input-group.date(id="datetimepicker1" data-target-input="nearest")
+      input(type="text", class="form-control datetimepicker-input", data-target="#datetimepicker1", id="eventDateTime", name="eventDateTime", required, value=(eventData && eventData.ticket.eventDateTime) || '')
+      .input-group-append(data-target="#datetimepicker1" data-toggle="datetimepicker")
+        .input-group-text
+          i.fas.fa-calendar-alt
+  .mb-3
+    label(for="venue" class="form-label") Venue
+    input(type="text", class="form-control", id="venue", name="venue", required, value=(eventData && eventData.ticket.venue) || '')
+  .mb-3
+    label(for="contactPhone" class="form-label") Contact Phone
+    input(type="tel", class="form-control", id="contactPhone", name="contactPhone", required, value=(eventData && eventData.ticket.contactPhone) || '')
+  .mb-3
+    label(for="seat" class="form-label") Seat
+    input(type="text", class="form-control", id="seat", name="seat", required, value=(eventData && eventData.ticket.seat) || '')
+  button.btn.btn-success(type="button", onclick="submitForm()") #{mode === 'Update' ? 'Update' : 'Add'}
+  span &nbsp;
+  button.btn.btn-primary(type="button", onclick="window.location.href='/'") Back to List
+
+script.
+  // Initialize the datetime picker
+  const format = 'DD/MM/YYYY HH:mm';
+  const picker = new tempusDominus.TempusDominus(document.getElementById('datetimepicker1'), {
+    localization: {
+      'locale': 'fr'
+    }
+  });
+  picker.dates.formatInput = function(date) {
+    return moment(date).format(format);
+  };
+
+  function submitForm() {
+    const eventData = {
+      eventName: document.getElementById('eventName').value,
+      eventDateTime: document.getElementById('eventDateTime').value,
+      venue: document.getElementById('venue').value,
+      contactPhone: document.getElementById('contactPhone').value,
+      seat: document.getElementById('seat').value
+    };
+
+    // Determine if it is an Add or Update operation
+    const isUpdate = "#{mode}" === "Update";
+    const url = isUpdate ? `/api/ticket/${(eventData && eventData.id) || ''}` : '/api/ticket';
+    const method = isUpdate ? 'put' : 'post';
+
+    axios[method](url, eventData)
+      .then(response => {
+        alert('Success!');
+        location.href = '/';
+      })
+      .catch(error => {
+        if (error.response)
+          alert(JSON.stringify(error.response.data.errors));
+        else
+          alert(error);
+      });
+  }
+
+
